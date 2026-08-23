@@ -1,15 +1,28 @@
-from datetime import date
+from datetime import date as date_type
 from typing import Optional
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from enum import Enum
 
+
+class TransactionType(str, Enum):
+    EXPENSE = "expense"
+    INCOME = "income"
+
+
+class CategoryType(str, Enum):
+    FOOD = "Food"
+    RENT = "Rent"
+    SALARY = "Salary"
+    UTILITIES = "Utilities"
+    ENTERTAINMENT = "Entertainment"
 
 
 class TransactionBase(BaseModel):
-    title: str = Field(..., min_length=1, max_length=100, examples=["Groceries"])
+    title: str = Field(..., min_length=1, ax_length=100, examples=["Groceries"])
     amount: float = Field(..., gt=0, description="Amount must be greater than zero", examples=[45.50])
-    type: str = Field(..., min_length=1, max_length=20, description="Transaction type, e.g., expense or income", examples=["expense"])
-    category: str = Field(..., min_length=1, max_length=50, examples=["Food"])
-    date: date = Field(..., examples=["2026-08-19"])
+    type: TransactionType = Field(...,description="Transaction type: expense or income",examples=[TransactionType.EXPENSE],)
+    category: CategoryType = Field(...,description="Allowed transaction category",examples=[CategoryType.FOOD],)
+    date: date_type = Field(..., examples=["2026-08-19"])
 
 
 
@@ -20,10 +33,14 @@ class TransactionUpdate(BaseModel):
     amount: Optional[float] = Field(None, gt=0, examples=[50.00])
     type: Optional[str] = Field(None, min_length=1, max_length=20, examples=["expense"])
     category: Optional[str] = Field(None, min_length=1, max_length=50, examples=["Food"])
-    date: Optional[date] = Field(None, examples=["2026-08-19"])
+    date: Optional[date_type] = Field(None, examples=["2026-08-19"])
 
 
+class TransactionResponse(TransactionBase):
+    id: int
 
+    # THIS IS REQUIRED for SQLAlchemy objects
+    model_config = ConfigDict(from_attributes=True)
 
 
 
@@ -33,7 +50,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    password: str = Field(..., min_length=8, max_length=100, examples=["SecretPass123!"])
+    password: str = Field(..., examples=["test123!"])
 
 
 class UserUpdate(BaseModel):
