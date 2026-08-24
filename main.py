@@ -8,6 +8,7 @@ from schemas import TransactionBase, TransactionResponse, TransactionUpdate
 from models import Transaction
 from fastapi.responses import JSONResponse
 from router.auth import get_current_user
+from datetime import datetime , timezone
 
 app = FastAPI()
 
@@ -39,7 +40,10 @@ def create_transactions(
                 detail="Incorrect username or password",
             )
 
-    new_transaction = Transaction(**transactions.model_dump())
+    
+
+    new_transaction = Transaction(**transactions.model_dump(),date=datetime.now(timezone.utc),
+                                  owner_id=user["user_id"])
     db.add(new_transaction)
     db.commit()
     db.refresh(new_transaction)
@@ -56,7 +60,7 @@ def read_all_transactions(user: user_dependency, db: db_dependency):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
         )
-    return db.query(Transaction).all()
+    return db.query(Transaction).filter(Transaction.owner_id == user["user_id"]).all()
 
 
 @app.get("/transactions/filter")
@@ -76,7 +80,8 @@ def get_transactions_by_id(
 
 
     my_transaction = (
-        db.query(Transaction).filter(Transaction.id == transaction_id).first()
+        db.query(Transaction).filter(Transaction.id == transaction_id, 
+                                     Transaction.owner_id==user["user_id"]).first()
     )
 
     if my_transaction is None:
@@ -100,7 +105,8 @@ def update_transaction_by_id(
                 detail="Incorrect username or password",
             )
     my_transaction = (
-        db.query(Transaction).filter(Transaction.id == transaction_id).first()
+        db.query(Transaction).filter(Transaction.id == transaction_id,
+                                     Transaction.owner_id==user["user_id"]).first()
     )
 
     if my_transaction is None:
@@ -115,7 +121,7 @@ def update_transaction_by_id(
 
 
 @app.delete("/transactions/{transaction_id}")
-def delete_transaction_by_id(user: user_dependency, t_id: int, db: db_dependency):
+def delete_transaction_by_id(user: user_dependency, transaction_id: int, db: db_dependency):
 
     if user is None:
             raise HTTPException(
@@ -123,7 +129,8 @@ def delete_transaction_by_id(user: user_dependency, t_id: int, db: db_dependency
                 detail="Incorrect username or password",
             )
     
-    my_transaction = db.query(Transaction).filter(Transaction.id == t_id).first()
+    my_transaction = db.query(Transaction).filter(Transaction.id == transaction_id,
+                                                  Transaction.owner_id==user["user_id"]).first()
 
     if my_transaction is None:
         raise HTTPException(

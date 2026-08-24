@@ -38,10 +38,10 @@ def create_access_toke(user_id: int, user_name: str):
 def get_current_user(token: Annotated[str, Depends(OAuth2_bearer)]):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_name = payload.get("sub")
-        user_id = payload.get("id")
+        user_name:str = payload.get("sub")
+        user_id:int = payload.get("id")
 
-        if user_name or user_id is None:
+        if user_name is None or user_id is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="user Not found",

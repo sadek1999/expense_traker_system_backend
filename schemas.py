@@ -22,7 +22,7 @@ class TransactionBase(BaseModel):
     amount: float = Field(..., gt=0, description="Amount must be greater than zero", examples=[45.50])
     type: TransactionType = Field(...,description="Transaction type: expense or income",examples=[TransactionType.EXPENSE],)
     category: CategoryType = Field(...,description="Allowed transaction category",examples=[CategoryType.FOOD],)
-    date: date_type = Field(..., examples=["2026-08-19"])
+   
 
 
 
@@ -33,7 +33,7 @@ class TransactionUpdate(BaseModel):
     amount: Optional[float] = Field(None, gt=0, examples=[50.00])
     type: Optional[str] = Field(None, min_length=1, max_length=20, examples=["expense"])
     category: Optional[str] = Field(None, min_length=1, max_length=50, examples=["Food"])
-    date: Optional[date_type] = Field(None, examples=["2026-08-19"])
+    
 
 
 class TransactionResponse(TransactionBase):
